@@ -1,0 +1,16 @@
+[
+{
+  "modid": "geyserresources",
+  "name": "Geyser Resources",
+  "description": "Allows plugins to provide custom assets.  Part of the Geyser suite.",
+  "version": "${version}",
+  "mcversion": "${mcversion}",
+  "url": "",
+  "updateUrl": "",
+  "authorList": ["Selim_042"],
+  "credits": "",
+  "logoFile": "",
+  "screenshots": [],
+  "dependencies": []
+}
+]
