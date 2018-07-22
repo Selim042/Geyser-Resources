@@ -1,4 +1,4 @@
-name: GeyserHUD
-main: selim.geyser.hud.bukkit.GeyserHUDSpigot
+name: GeyserResources
+main: selim.geyser.resources.bukkit.GeyserResourcesSpigot
 depend: [GeyserCore]
 version: 1.0.0
