@@ -8,8 +8,10 @@ public class GeyserResourcesInfo {
 	public static final String CHANNEL = "geyser_resources";
 
 	public static class PacketDiscrimators {
+
 		public static final char PACK_HEADER = (char) 'h';
 		public static final char PACK_DATA = (char) 'd';
+		public static final char PACK_LIST = (char) 'l';
 	}
 
 }
