@@ -49,7 +49,8 @@ public class GeyserResourcesSpigot extends JavaPlugin
 		NETWORK.registerPacket(GeyserResourcesInfo.PacketDiscrimators.PACK_HEADER,
 				PacketPackHeader.class);
 		NETWORK.registerPacket(GeyserResourcesInfo.PacketDiscrimators.PACK_DATA, PacketPackData.class);
-		NETWORK.registerPacket(GeyserResourcesInfo.PacketDiscrimators.PACK_LIST, PacketPackList.class);
+		NETWORK.registerPacket(GeyserResourcesInfo.PacketDiscrimators.PACK_LIST, PacketPackList.class,
+				PacketPackList.Handler.class);
 
 		ZIP_FOLDER = new File(this.getDataFolder(), "packs");
 		if (!ZIP_FOLDER.exists())
@@ -99,13 +100,13 @@ public class GeyserResourcesSpigot extends JavaPlugin
 	}
 
 	private static void transferFiles(String pluginName, ZipOutputStream zip, JarFile jar) {
-		String pathPrefix = "resources/assets/" + pluginName.toLowerCase();
+		String pathPrefix = "resources/assets/" + pluginName.toLowerCase() + "/";
 		Enumeration<JarEntry> entries = jar.entries();
 		while (entries.hasMoreElements()) {
 			JarEntry entry = entries.nextElement();
 			if (entry != null && entry.getName().startsWith(pathPrefix)) {
 				String fileName = entry.getName()
-						.substring(entry.getName().indexOf(pathPrefix) + pathPrefix.length() + 1);
+						.substring(entry.getName().indexOf(pathPrefix) + pathPrefix.length());
 				System.out.println(entry.getName());
 				System.out.println(fileName);
 				try {
@@ -136,7 +137,7 @@ public class GeyserResourcesSpigot extends JavaPlugin
 	}
 
 	private static String getZipName(String pluginName, String version) {
-		return pluginName + "-" + version + "-" + ".zip";
+		return pluginName + "-" + version + ".zip";
 	}
 
 	private int getPing(Player player) {

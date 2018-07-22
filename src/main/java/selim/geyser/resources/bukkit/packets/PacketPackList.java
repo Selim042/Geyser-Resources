@@ -3,9 +3,12 @@ package selim.geyser.resources.bukkit.packets;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.bukkit.entity.Player;
+
 import io.netty.buffer.ByteBuf;
 import selim.geyser.core.bukkit.BukkitByteBufUtils;
 import selim.geyser.core.bukkit.network.GeyserPacket;
+import selim.geyser.core.bukkit.network.GeyserPacketHandler;
 
 public class PacketPackList extends GeyserPacket {
 
@@ -31,6 +34,16 @@ public class PacketPackList extends GeyserPacket {
 		int size = buf.readInt();
 		for (int i = 0; i < size; i++)
 			zips.add(BukkitByteBufUtils.readUTF8String(buf));
+	}
+
+	public static class Handler extends GeyserPacketHandler<PacketPackList, GeyserPacket> {
+
+		@Override
+		public GeyserPacket handle(Player player, PacketPackList packet) {
+			
+			return null;
+		}
+
 	}
 
 }

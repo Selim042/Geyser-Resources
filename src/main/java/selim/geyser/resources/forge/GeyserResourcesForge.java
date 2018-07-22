@@ -14,10 +14,12 @@ import selim.geyser.core.shared.EnumComponent;
 import selim.geyser.core.shared.GeyserCoreInfo;
 import selim.geyser.resources.forge.packets.PacketPackData;
 import selim.geyser.resources.forge.packets.PacketPackHeader;
+import selim.geyser.resources.forge.packets.PacketPackList;
 import selim.geyser.resources.shared.GeyserResourcesInfo;
 
 @Mod(modid = GeyserResourcesInfo.ID, name = GeyserResourcesInfo.NAME,
-		version = GeyserResourcesInfo.VERSION, clientSideOnly = true)
+		dependencies = "required-after:" + GeyserCoreInfo.ID, version = GeyserResourcesInfo.VERSION,
+		clientSideOnly = true)
 public class GeyserResourcesForge {
 
 	@Mod.Instance(value = GeyserResourcesInfo.ID)
@@ -27,14 +29,16 @@ public class GeyserResourcesForge {
 
 	@EventHandler
 	public void preInit(FMLPreInitializationEvent event) {
-		network = NetworkRegistry.INSTANCE.newSimpleChannel(GeyserCoreInfo.CHANNEL);
+		network = NetworkRegistry.INSTANCE.newSimpleChannel(GeyserResourcesInfo.CHANNEL);
 		network.registerMessage(PacketPackHeader.Handler.class, PacketPackHeader.class,
 				GeyserResourcesInfo.PacketDiscrimators.PACK_HEADER, Side.CLIENT);
 		network.registerMessage(PacketPackData.Handler.class, PacketPackData.class,
 				GeyserResourcesInfo.PacketDiscrimators.PACK_DATA, Side.CLIENT);
+		network.registerMessage(PacketPackList.Handler.class, PacketPackList.class,
+				GeyserResourcesInfo.PacketDiscrimators.PACK_LIST, Side.CLIENT);
 
 		FMLInterModComms.sendMessage(GeyserCoreInfo.ID, GeyserCoreInfo.IMC_SEND_KEY,
-				EnumComponent.CORE.toString());
+				EnumComponent.RESOURCES.toString());
 	}
 
 }

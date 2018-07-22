@@ -10,6 +10,8 @@ import java.util.concurrent.CopyOnWriteArrayList;
 public class PackManager {
 
 	private static final File PACK_FOLDER;
+	private static int NUM_PACKS;
+
 	private static String PACK_NAME;
 	private static int REMAINING = -1;
 	private static final List<Byte[]> PACKETS = new CopyOnWriteArrayList<>();
@@ -26,6 +28,14 @@ public class PackManager {
 		PACK_FOLDER = new File(home);
 		if (!PACK_FOLDER.exists())
 			PACK_FOLDER.mkdirs();
+	}
+
+	public static void setNumPacks(int numPacks) {
+		NUM_PACKS = numPacks;
+	}
+
+	public static int getNumPacks() {
+		return NUM_PACKS;
 	}
 
 	public static void startDataList(String name, int numPackets) {
@@ -69,6 +79,20 @@ public class PackManager {
 		for (int i = 0; i < arr.length; i++)
 			wrapArr[i] = arr[i];
 		return wrapArr;
+	}
+
+	public static boolean hasPack(String name) {
+		return arrContains(name, PACK_FOLDER.list());
+	}
+
+	@SafeVarargs
+	private static <T> boolean arrContains(T t, T... ttt) {
+		if (ttt == null)
+			return t == null;
+		for (T tt : ttt)
+			if (tt != null && tt.equals(t))
+				return true;
+		return false;
 	}
 
 }
