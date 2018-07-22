@@ -75,13 +75,20 @@ public class PacketPackList extends GeyserPacket {
 							+ 1;
 					GeyserResourcesSpigot.NETWORK.sendPacket(player,
 							new PacketPackHeader(pack, numPackets));
+					byte[] data = new byte[inputStream.available()];
+					System.out.println("avail: " + inputStream.available());
+					inputStream.read(data);
+					inputStream.close();
 					for (int i = 0; i < numPackets; i++) {
-						byte[] bytes = new byte[GeyserResourcesSpigot.DATA_PACKET_SIZE];
-						inputStream.read(bytes, i * GeyserResourcesSpigot.DATA_PACKET_SIZE,
-								GeyserResourcesSpigot.DATA_PACKET_SIZE);
+						int length = GeyserResourcesSpigot.DATA_PACKET_SIZE;
+						if ((i + 1) * GeyserResourcesSpigot.DATA_PACKET_SIZE > data.length)
+							length = data.length - (i * GeyserResourcesSpigot.DATA_PACKET_SIZE);
+						System.out.println("length: " + length);
+						byte[] bytes = new byte[length];
+						for (int i2 = 0; i2 < length; i2++)
+							bytes[i2] = data[(i * GeyserResourcesSpigot.DATA_PACKET_SIZE) + i2];
 						GeyserResourcesSpigot.NETWORK.sendPacket(player, new PacketPackData(bytes));
 					}
-					inputStream.close();
 				} catch (IOException e) {
 					e.printStackTrace();
 				}

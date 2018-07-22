@@ -4,10 +4,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 import io.netty.buffer.ByteBuf;
+import net.minecraft.client.Minecraft;
 import net.minecraftforge.fml.common.network.ByteBufUtils;
 import net.minecraftforge.fml.common.network.simpleimpl.IMessage;
 import net.minecraftforge.fml.common.network.simpleimpl.IMessageHandler;
 import net.minecraftforge.fml.common.network.simpleimpl.MessageContext;
+import selim.geyser.resources.forge.GuiDownloadingPacks;
 import selim.geyser.resources.forge.PackManager;
 
 public class PacketPackList implements IMessage {
@@ -42,11 +44,16 @@ public class PacketPackList implements IMessage {
 		public PacketPackList onMessage(PacketPackList message, MessageContext ctx) {
 			List<String> reply = new ArrayList<>();
 			for (String pack : message.zips)
-				if (!PackManager.hasPack(pack)) {
-					System.out.println("telling server I need " + pack);
+				if (!PackManager.hasPack(pack))
 					reply.add(pack);
-				}
 			PackManager.setNumPacks(reply.size());
+			Minecraft.getMinecraft().addScheduledTask(new Runnable() {
+
+				@Override
+				public void run() {
+					Minecraft.getMinecraft().displayGuiScreen(new GuiDownloadingPacks());
+				}
+			});
 			return new PacketPackList(reply);
 		}
 
