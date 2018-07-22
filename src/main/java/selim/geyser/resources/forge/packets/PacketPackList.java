@@ -42,8 +42,10 @@ public class PacketPackList implements IMessage {
 		public PacketPackList onMessage(PacketPackList message, MessageContext ctx) {
 			List<String> reply = new ArrayList<>();
 			for (String pack : message.zips)
-				if (!PackManager.hasPack(pack))
+				if (!PackManager.hasPack(pack)) {
+					System.out.println("telling server I need " + pack);
 					reply.add(pack);
+				}
 			PackManager.setNumPacks(reply.size());
 			return new PacketPackList(reply);
 		}

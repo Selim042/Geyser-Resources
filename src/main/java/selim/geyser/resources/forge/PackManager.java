@@ -39,6 +39,10 @@ public class PackManager {
 	}
 
 	public static void startDataList(String name, int numPackets) {
+		GeyserResourcesForge.LOGGER
+				.info("Downloading asset pack " + name + " in " + numPackets + " parts.");
+		if (numPackets <= 0)
+			return;
 		PACK_NAME = name;
 		REMAINING = numPackets;
 	}

@@ -6,7 +6,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Enumeration;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
@@ -35,10 +37,12 @@ import selim.geyser.resources.shared.GeyserResourcesInfo;
 public class GeyserResourcesSpigot extends JavaPlugin
 		implements Listener, IGeyserCorePlugin, IGeyserPlugin {
 
-	protected static Logger LOGGER;
-	protected static GeyserResourcesSpigot INSTANCE;
-	protected static NetworkHandler NETWORK;
-	protected static File ZIP_FOLDER;
+	public static final int DATA_PACKET_SIZE = 1000;
+
+	public static Logger LOGGER;
+	public static GeyserResourcesSpigot INSTANCE;
+	public static NetworkHandler NETWORK;
+	public static File ZIP_FOLDER;
 
 	@Override
 	public void onEnable() {
@@ -60,8 +64,13 @@ public class GeyserResourcesSpigot extends JavaPlugin
 		manager.registerEvents(this, this);
 	}
 
+	private static final Map<String, File> USED_ZIPS = new HashMap<>();
 	private static final List<String> USED_ZIP_NAMES = new CopyOnWriteArrayList<>();
-	private static final List<File> USED_ZIPS = new CopyOnWriteArrayList<>();
+	// private static final List<File> USED_ZIPS = new CopyOnWriteArrayList<>();
+
+	public static File getPack(String name) {
+		return USED_ZIPS.get(name);
+	}
 
 	@EventHandler
 	public void onPluginEnable(PluginEnableEvent event) {
@@ -72,18 +81,17 @@ public class GeyserResourcesSpigot extends JavaPlugin
 		if (plugin instanceof IGeyserPlugin) {
 			IGeyserPlugin geyserPlugin = (IGeyserPlugin) plugin;
 			if (arrContains(EnumComponent.RESOURCES, geyserPlugin.requiredComponents())) {
-				LOGGER.info("blep");
 				String pluginName = plugin.getName();
 				String pluginVersion = plugin.getDescription().getVersion();
 				String zipName = getZipName(pluginName, pluginVersion);
+				File zipFile = new File(ZIP_FOLDER, zipName);
 				if (shouldCreateZip(pluginName, pluginVersion)) {
-					LOGGER.info(
-							"Creating asset pack for " + pluginName + " version " + pluginVersion + ".");
+					LOGGER.info("Creating asset pack for " + pluginName + " version " + pluginVersion
+							+ "." + zipFile);
 					try {
 						File file = new File(plugin.getClass().getProtectionDomain().getCodeSource()
 								.getLocation().getPath());
 						JarFile jar = new JarFile(file);
-						File zipFile = new File(ZIP_FOLDER, zipName);
 						if (!zipFile.exists())
 							zipFile.createNewFile();
 						ZipOutputStream zip = new ZipOutputStream(new FileOutputStream(zipFile));
@@ -91,10 +99,10 @@ public class GeyserResourcesSpigot extends JavaPlugin
 					} catch (IllegalArgumentException | SecurityException | IOException e) {
 						e.printStackTrace();
 					}
-				} else {
-					USED_ZIPS.add(new File(ZIP_FOLDER, zipName));
-					USED_ZIP_NAMES.add(zipName);
 				}
+				USED_ZIPS.put(zipName, zipFile);
+				// USED_ZIPS.add(new File(ZIP_FOLDER, zipName));
+				USED_ZIP_NAMES.add(zipName);
 			}
 		}
 	}
@@ -107,8 +115,6 @@ public class GeyserResourcesSpigot extends JavaPlugin
 			if (entry != null && entry.getName().startsWith(pathPrefix)) {
 				String fileName = entry.getName()
 						.substring(entry.getName().indexOf(pathPrefix) + pathPrefix.length());
-				System.out.println(entry.getName());
-				System.out.println(fileName);
 				try {
 					zip.putNextEntry(new ZipEntry(fileName));
 					InputStream inputStream = jar.getInputStream(entry);
