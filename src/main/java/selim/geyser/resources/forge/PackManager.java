@@ -4,16 +4,15 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 public class PackManager {
 
 	private static final File PACK_FOLDER;
-	private static final Map<String, List<Byte[]>> PACKETS = new HashMap<>();
-	private static final Map<String, Integer> REMAINING = new HashMap<>();
+	private static String PACK_NAME;
+	private static int REMAINING = -1;
+	private static final List<Byte[]> PACKETS = new CopyOnWriteArrayList<>();
 
 	static {
 		String home = System.getProperty("user.home");
@@ -30,40 +29,39 @@ public class PackManager {
 	}
 
 	public static void startDataList(String name, int numPackets) {
-		PACKETS.put(name, new CopyOnWriteArrayList<>());
-		REMAINING.put(name, numPackets);
+		PACK_NAME = name;
+		REMAINING = numPackets;
 	}
 
-	public static void addDataPacket(String name, byte[] data) {
-		addDataPacket(name, toWrapper(data));
+	public static void addDataPacket(byte[] data) {
+		addDataPacket(toWrapper(data));
 	}
 
-	public static void addDataPacket(String name, Byte[] data) {
-		List<Byte[]> dataList = PACKETS.get(name);
-		if (dataList == null)
+	public static void addDataPacket(Byte[] data) {
+		if (PACKETS == null)
 			return;
-		dataList.add(data);
-		REMAINING.put(name, REMAINING.get(name) - 1);
-		if (REMAINING.get(name) == 0)
-			finalizePack(name);
+		PACKETS.add(data);
+		REMAINING--;
+		if (REMAINING == 0)
+			finalizePack();
 	}
 
-	public static void finalizePack(String name) {
-		if (!PACKETS.containsKey(name))
+	private static void finalizePack() {
+		if (PACKETS.isEmpty() || REMAINING > 0 || PACK_NAME == null)
 			return;
-		File packFile = new File(PACK_FOLDER, name + ".zip");
+		File packFile = new File(PACK_FOLDER, PACK_NAME + ".zip");
 		try {
 			OutputStream stream = new FileOutputStream(packFile);
-			List<Byte[]> dataList = PACKETS.get(name);
-			for (Byte[] data : dataList)
+			for (Byte[] data : PACKETS)
 				for (Byte b : data)
 					stream.write(b);
 			stream.close();
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-		PACKETS.remove(name);
-		REMAINING.remove(name);
+		PACKETS.clear();
+		PACK_NAME = null;
+		REMAINING = -1;
 	}
 
 	private static Byte[] toWrapper(byte[] arr) {
