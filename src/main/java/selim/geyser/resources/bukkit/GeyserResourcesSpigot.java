@@ -37,7 +37,7 @@ import selim.geyser.resources.shared.GeyserResourcesInfo;
 public class GeyserResourcesSpigot extends JavaPlugin
 		implements Listener, IGeyserCorePlugin, IGeyserPlugin {
 
-	public static final int DATA_PACKET_SIZE = 1000;
+	public static final int DATA_PACKET_SIZE = 10000;
 
 	public static Logger LOGGER;
 	public static GeyserResourcesSpigot INSTANCE;
@@ -139,7 +139,7 @@ public class GeyserResourcesSpigot extends JavaPlugin
 	private static boolean shouldCreateZip(String pluginName, String version) {
 		if (ZIP_FOLDER.listFiles() == null || ZIP_FOLDER.list().length == 0)
 			return true;
-		return arrContains(getZipName(pluginName, version), ZIP_FOLDER.list());
+		return !arrContains(getZipName(pluginName, version), ZIP_FOLDER.list());
 	}
 
 	private static String getZipName(String pluginName, String version) {
