@@ -1,11 +1,17 @@
 package selim.geyser.resources.forge;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.security.DigestInputStream;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
+
+import scala.actors.threadpool.Arrays;
 
 public class PackManager {
 
@@ -15,6 +21,7 @@ public class PackManager {
 	private static String PACK_NAME;
 	private static int TOTAL = -1;
 	private static int REMAINING = -1;
+	private static byte[] MD5;
 	private static final List<Byte[]> PACKETS = new CopyOnWriteArrayList<>();
 
 	static {
@@ -49,7 +56,7 @@ public class PackManager {
 		return (int) (100 * ((float) (TOTAL - REMAINING) / TOTAL));
 	}
 
-	public static void startDataList(String name, int numPackets) {
+	public static void startDataList(String name, int numPackets, byte[] md5) {
 		GeyserResourcesForge.LOGGER
 				.info("Downloading asset pack " + name + " in " + numPackets + " parts.");
 		if (numPackets <= 0)
@@ -57,6 +64,7 @@ public class PackManager {
 		PACK_NAME = name;
 		TOTAL = numPackets;
 		REMAINING = numPackets;
+		MD5 = md5;
 		PACKETS.clear();
 	}
 
@@ -84,6 +92,19 @@ public class PackManager {
 					stream.write(b);
 			stream.close();
 		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		try {
+			MessageDigest md = MessageDigest.getInstance("MD5");
+			DigestInputStream digest = new DigestInputStream(new FileInputStream(packFile), md);
+			byte[] md5 = digest.getMessageDigest().digest();
+			digest.close();
+			if (!Arrays.equals(md5, MD5)) {
+				GeyserResourcesForge.LOGGER
+						.error(PACK_NAME + " failed checksum validation.  Deleting pack.");
+				packFile.delete();
+			}
+		} catch (NoSuchAlgorithmException | IOException e) {
 			e.printStackTrace();
 		}
 		PACKETS.clear();
