@@ -13,6 +13,7 @@ public class PackManager {
 	private static int NUM_PACKS;
 
 	private static String PACK_NAME;
+	private static int TOTAL = -1;
 	private static int REMAINING = -1;
 	private static final List<Byte[]> PACKETS = new CopyOnWriteArrayList<>();
 
@@ -38,13 +39,25 @@ public class PackManager {
 		return NUM_PACKS;
 	}
 
+	public static String getDownloadingPack() {
+		if (PACK_NAME == null)
+			return "MISSINGNO";
+		return PACK_NAME;
+	}
+
+	public static int getDownloadingProgress() {
+		return (int) (100 * ((float) (TOTAL - REMAINING) / TOTAL));
+	}
+
 	public static void startDataList(String name, int numPackets) {
 		GeyserResourcesForge.LOGGER
 				.info("Downloading asset pack " + name + " in " + numPackets + " parts.");
 		if (numPackets <= 0)
 			return;
 		PACK_NAME = name;
+		TOTAL = numPackets;
 		REMAINING = numPackets;
+		PACKETS.clear();
 	}
 
 	public static void addDataPacket(byte[] data) {
@@ -63,7 +76,7 @@ public class PackManager {
 	private static void finalizePack() {
 		if (PACKETS.isEmpty() || REMAINING > 0 || PACK_NAME == null)
 			return;
-		File packFile = new File(PACK_FOLDER, PACK_NAME + ".zip");
+		File packFile = new File(PACK_FOLDER, PACK_NAME);
 		try {
 			OutputStream stream = new FileOutputStream(packFile);
 			for (Byte[] data : PACKETS)
@@ -75,7 +88,9 @@ public class PackManager {
 		}
 		PACKETS.clear();
 		PACK_NAME = null;
+		TOTAL = -1;
 		REMAINING = -1;
+		NUM_PACKS--;
 	}
 
 	private static Byte[] toWrapper(byte[] arr) {
