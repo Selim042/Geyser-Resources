@@ -139,6 +139,19 @@ public class PackManager {
 			applyPacks();
 	}
 
+	private static void applyPacks() {
+		ResourcePackRepository repo = Minecraft.getMinecraft().getResourcePackRepository();
+		List<ResourcePackRepository.Entry> list = Lists.newArrayList(repo.getRepositoryEntriesAll());
+		try {
+			Constructor<ResourcePackRepository.Entry> constructor = ResourcePackRepository.Entry.class
+					.getDeclaredConstructor(IResourcePack.class);
+			constructor.setAccessible(true);
+			for (File pack : USED_PACKS)
+				list.add(constructor.newInstance(new AssetPackResourcePack(pack)));
+		} catch (NoSuchMethodException | SecurityException | InstantiationException
+				| IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
+			e.printStackTrace();
+		}
 	}
 
 	private static Byte[] toWrapper(byte[] arr) {
