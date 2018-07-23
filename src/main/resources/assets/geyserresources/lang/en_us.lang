@@ -1,0 +1,3 @@
+geyserresources:downloading=Downloading %s
+geyserresources:remaining=%d packs remaining
+geyserresources:remaining_singular=%d pack remaining

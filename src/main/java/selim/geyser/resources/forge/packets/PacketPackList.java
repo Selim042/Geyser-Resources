@@ -43,9 +43,11 @@ public class PacketPackList implements IMessage {
 		@Override
 		public PacketPackList onMessage(PacketPackList message, MessageContext ctx) {
 			List<String> reply = new ArrayList<>();
-			for (String pack : message.zips)
+			for (String pack : message.zips) {
 				if (!PackManager.hasPack(pack))
 					reply.add(pack);
+				PackManager.addUsedPack(pack);
+			}
 			PackManager.setNumPacks(reply.size());
 			Minecraft.getMinecraft().addScheduledTask(new Runnable() {
 

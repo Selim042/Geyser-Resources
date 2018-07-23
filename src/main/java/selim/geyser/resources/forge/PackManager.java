@@ -5,17 +5,26 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 import java.security.DigestInputStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
+import com.google.common.collect.Lists;
+
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.resources.IResourcePack;
+import net.minecraft.client.resources.ResourcePackRepository;
 import scala.actors.threadpool.Arrays;
 
 public class PackManager {
 
-	private static final File PACK_FOLDER;
+	public static final File PACK_FOLDER;
+	private static List<File> USED_PACKS;
 	private static int NUM_PACKS;
 
 	private static String PACK_NAME;
@@ -53,7 +62,11 @@ public class PackManager {
 	}
 
 	public static int getDownloadingProgress() {
-		return (int) (100 * ((float) (TOTAL - REMAINING) / TOTAL));
+		return (100 * (TOTAL - REMAINING)) / TOTAL;
+	}
+
+	public static void addUsedPack(String pack) {
+		USED_PACKS.add(new File(PACK_FOLDER, pack));
 	}
 
 	public static void startDataList(String name, int numPackets, byte[] md5) {
@@ -84,10 +97,21 @@ public class PackManager {
 	private static void finalizePack() {
 		if (PACKETS.isEmpty() || REMAINING > 0 || PACK_NAME == null)
 			return;
-		File packFile = new File(PACK_FOLDER, PACK_NAME);
+		List<Byte[]> packets = new ArrayList<>(PACKETS);
+		PACKETS.clear();
+		String packName = new String(PACK_NAME);
+		PACK_NAME = null;
+		TOTAL = -1;
+		REMAINING = -1;
+		NUM_PACKS--;
+		// Minecraft.getMinecraft().addScheduledTask(new Runnable() {
+		//
+		// @Override
+		// public void run() {
+		File packFile = new File(PACK_FOLDER, packName);
 		try {
 			OutputStream stream = new FileOutputStream(packFile);
-			for (Byte[] data : PACKETS)
+			for (Byte[] data : packets)
 				for (Byte b : data)
 					stream.write(b);
 			stream.close();
@@ -101,17 +125,20 @@ public class PackManager {
 			digest.close();
 			if (!Arrays.equals(md5, MD5)) {
 				GeyserResourcesForge.LOGGER
-						.error(PACK_NAME + " failed checksum validation.  Deleting pack.");
+						.error(packName + " failed checksum validation.  Deleting pack.");
 				packFile.delete();
 			}
 		} catch (NoSuchAlgorithmException | IOException e) {
 			e.printStackTrace();
 		}
-		PACKETS.clear();
-		PACK_NAME = null;
-		TOTAL = -1;
-		REMAINING = -1;
-		NUM_PACKS--;
+		// }
+		// });
+		// PACKETS.clear();
+		// PACK_NAME = null;
+		if (NUM_PACKS == 0)
+			applyPacks();
+	}
+
 	}
 
 	private static Byte[] toWrapper(byte[] arr) {
