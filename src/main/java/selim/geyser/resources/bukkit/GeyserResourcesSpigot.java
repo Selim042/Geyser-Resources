@@ -38,6 +38,8 @@ public class GeyserResourcesSpigot extends JavaPlugin
 		implements Listener, IGeyserCorePlugin, IGeyserPlugin {
 
 	public static final int DATA_PACKET_SIZE = 10000;
+	public static final String[] EXTENSION_WHITELIST = new String[] { ".json", ".png", ".lang", ".nbt",
+			".txt", ".mcmeta" };
 
 	public static Logger LOGGER;
 	public static GeyserResourcesSpigot INSTANCE;
@@ -112,9 +114,19 @@ public class GeyserResourcesSpigot extends JavaPlugin
 		Enumeration<JarEntry> entries = jar.entries();
 		while (entries.hasMoreElements()) {
 			JarEntry entry = entries.nextElement();
-			if (entry != null && entry.getName().startsWith(pathPrefix)) {
-				String fileName = entry.getName()
-						.substring(entry.getName().indexOf(pathPrefix) + pathPrefix.length());
+			String entryName = entry.getName();
+			if (entry != null && entryName.startsWith(pathPrefix)) {
+				String fileName = entryName
+						.substring(entryName.indexOf(pathPrefix) + pathPrefix.length());
+				boolean matches = false;
+				for (String ext : EXTENSION_WHITELIST) {
+					if (fileName.endsWith(ext)) {
+						matches = true;
+						break;
+					}
+				}
+				if (!matches)
+					continue;
 				try {
 					zip.putNextEntry(new ZipEntry(fileName));
 					InputStream inputStream = jar.getInputStream(entry);
