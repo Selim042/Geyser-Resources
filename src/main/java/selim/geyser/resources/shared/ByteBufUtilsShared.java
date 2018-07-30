@@ -2,6 +2,10 @@ package selim.geyser.resources.shared;
 
 import io.netty.buffer.ByteBuf;
 
+/**
+ * @deprecated Use class of the same name in Geyser Core
+ */
+@Deprecated
 public class ByteBufUtilsShared {
 
 	public static void writeByteArray(ByteBuf buf, byte[] arr) {
