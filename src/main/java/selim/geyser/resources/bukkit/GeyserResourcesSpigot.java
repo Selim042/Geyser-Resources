@@ -192,7 +192,7 @@ public class GeyserResourcesSpigot extends JavaPlugin
 
 	@Override
 	public EnumComponent[] providedComponents() {
-		return new EnumComponent[] { EnumComponent.RESOURCES };
+		return new EnumComponent[] { EnumComponent.RESOURCES, EnumComponent.TRANSLATIONS };
 	}
 
 	@SafeVarargs
