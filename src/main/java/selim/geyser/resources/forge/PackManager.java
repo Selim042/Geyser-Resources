@@ -148,7 +148,20 @@ public class PackManager {
 			applyPacks();
 	}
 
+	private static void unloadOldPacks() {
+		ResourcePackRepository repo = Minecraft.getMinecraft().getResourcePackRepository();
+		List<ResourcePackRepository.Entry> list = ReflectionHelper
+				.getPrivateValue(ResourcePackRepository.class, repo, "repositoryEntries");
+		for (ResourcePackRepository.Entry e : Collections.unmodifiableList(list)) {
+			if (e != null && LOADED_PACKS.contains(e.getResourcePack())) {
+				list.remove(e);
+				LOADED_PACKS.remove(e.getResourcePack());
+			}
+		}
+	}
+
 	private static void applyPacks() {
+		unloadOldPacks();
 		ResourcePackRepository repo = Minecraft.getMinecraft().getResourcePackRepository();
 		List<ResourcePackRepository.Entry> list = ReflectionHelper
 				.getPrivateValue(ResourcePackRepository.class, repo, "repositoryEntries");
@@ -188,6 +201,12 @@ public class PackManager {
 			if (tt != null && tt.equals(t))
 				return true;
 		return false;
+	}
+
+	@SubscribeEvent
+	public static void onDisconnect(ClientDisconnectionFromServerEvent event) {
+		unloadOldPacks();
+		Minecraft.getMinecraft().scheduleResourcesRefresh();
 	}
 
 }
