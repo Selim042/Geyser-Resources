@@ -9,12 +9,13 @@ import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
 import io.netty.buffer.ByteBuf;
-import selim.geyser.core.bukkit.BukkitByteBufUtils;
 import selim.geyser.core.bukkit.network.GeyserPacket;
 import selim.geyser.core.bukkit.network.GeyserPacketHandler;
+import selim.geyser.core.shared.SharedByteBufUtils;
 import selim.geyser.resources.bukkit.GeyserResourcesSpigot;
 
 public class PacketPackList extends GeyserPacket {
@@ -33,22 +34,30 @@ public class PacketPackList extends GeyserPacket {
 	public void toBytes(ByteBuf buf) {
 		buf.writeInt(this.zips.size());
 		for (String zip : zips)
-			BukkitByteBufUtils.writeUTF8String(buf, zip);
+			SharedByteBufUtils.writeUTF8String(buf, zip);
 	}
 
 	@Override
 	public void fromBytes(ByteBuf buf) {
 		int size = buf.readInt();
 		for (int i = 0; i < size; i++)
-			zips.add(BukkitByteBufUtils.readUTF8String(buf));
+			zips.add(SharedByteBufUtils.readUTF8String(buf));
 	}
 
 	public static class Handler extends GeyserPacketHandler<PacketPackList, GeyserPacket> {
 
+		@SuppressWarnings("deprecation")
 		@Override
 		public GeyserPacket handle(Player player, PacketPackList packet) {
-			for (String pack : packet.zips)
-				sendPack(player, pack);
+			Bukkit.getScheduler().scheduleAsyncDelayedTask(GeyserResourcesSpigot.INSTANCE,
+					new Runnable() {
+
+						@Override
+						public void run() {
+							for (String pack : packet.zips)
+								sendPack(player, pack);
+						}
+					});
 			return null;
 		}
 
@@ -79,6 +88,12 @@ public class PacketPackList extends GeyserPacket {
 						for (int i2 = 0; i2 < length; i2++)
 							bytes[i2] = data[(i * GeyserResourcesSpigot.DATA_PACKET_SIZE) + i2];
 						GeyserResourcesSpigot.NETWORK.sendPacket(player, new PacketPackData(bytes));
+						try {
+							if (i % 10 == 0)
+								Thread.sleep(1000);
+						} catch (InterruptedException e) {
+							e.printStackTrace();
+						}
 					}
 				} catch (NoSuchAlgorithmException e) {
 					e.printStackTrace();

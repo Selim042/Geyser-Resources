@@ -1,9 +1,8 @@
 package selim.geyser.resources.bukkit.packets;
 
 import io.netty.buffer.ByteBuf;
-import selim.geyser.core.bukkit.BukkitByteBufUtils;
 import selim.geyser.core.bukkit.network.GeyserPacket;
-import selim.geyser.resources.shared.ByteBufUtilsShared;
+import selim.geyser.core.shared.SharedByteBufUtils;
 
 public class PacketPackHeader extends GeyserPacket {
 
@@ -25,16 +24,16 @@ public class PacketPackHeader extends GeyserPacket {
 
 	@Override
 	public void fromBytes(ByteBuf buf) {
-		this.name = BukkitByteBufUtils.readUTF8String(buf);
+		this.name = SharedByteBufUtils.readUTF8String(buf);
 		this.numPackets = buf.readInt();
-		this.md5 = ByteBufUtilsShared.readByteArray(buf);
+		this.md5 = SharedByteBufUtils.readByteArray(buf);
 	}
 
 	@Override
 	public void toBytes(ByteBuf buf) {
-		BukkitByteBufUtils.writeUTF8String(buf, this.name);
+		SharedByteBufUtils.writeUTF8String(buf, this.name);
 		buf.writeInt(this.numPackets);
-		ByteBufUtilsShared.writeByteArray(buf, this.md5);
+		SharedByteBufUtils.writeByteArray(buf, this.md5);
 	}
 
 }
