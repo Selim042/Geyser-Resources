@@ -150,8 +150,8 @@ public class PackManager {
 
 	private static void unloadOldPacks() {
 		ResourcePackRepository repo = Minecraft.getMinecraft().getResourcePackRepository();
-		List<ResourcePackRepository.Entry> list = ReflectionHelper
-				.getPrivateValue(ResourcePackRepository.class, repo, "repositoryEntries");
+		List<ResourcePackRepository.Entry> list = ReflectionHelper.getPrivateValue(
+				ResourcePackRepository.class, repo, "repositoryEntries", "field_110617_f");
 		for (ResourcePackRepository.Entry e : Collections.unmodifiableList(list)) {
 			if (e != null && LOADED_PACKS.contains(e.getResourcePack())) {
 				list.remove(e);
