@@ -39,7 +39,7 @@ public class GeyserResourcesForge {
 				GeyserResourcesInfo.PacketDiscrimators.PACK_LIST, Side.CLIENT);
 
 		FMLInterModComms.sendMessage(GeyserCoreInfo.ID, GeyserCoreInfo.IMC_SEND_KEY,
-				EnumComponent.RESOURCES.toString());
+				EnumComponent.RESOURCES.toString() + "," + EnumComponent.TRANSLATIONS.toString());
 	}
 
 	@EventHandler
