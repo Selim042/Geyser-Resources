@@ -5,26 +5,31 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.lang.reflect.AccessibleObject;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.security.DigestInputStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
-
-import com.google.common.collect.Lists;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.resources.IResourcePack;
 import net.minecraft.client.resources.ResourcePackRepository;
+import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
+import net.minecraftforge.fml.common.network.FMLNetworkEvent.ClientDisconnectionFromServerEvent;
+import net.minecraftforge.fml.relauncher.ReflectionHelper;
 import scala.actors.threadpool.Arrays;
 
+@Mod.EventBusSubscriber
 public class PackManager {
 
 	public static final File PACK_FOLDER;
-	private static List<File> USED_PACKS;
+	private static final List<File> USED_PACKS = new CopyOnWriteArrayList<>();
 	private static int NUM_PACKS;
 
 	private static String PACK_NAME;
@@ -32,6 +37,8 @@ public class PackManager {
 	private static int REMAINING = -1;
 	private static byte[] MD5;
 	private static final List<Byte[]> PACKETS = new CopyOnWriteArrayList<>();
+
+	private static final List<IResourcePack> LOADED_PACKS = new CopyOnWriteArrayList<>();
 
 	static {
 		String home = System.getProperty("user.home");
@@ -49,6 +56,8 @@ public class PackManager {
 
 	public static void setNumPacks(int numPacks) {
 		NUM_PACKS = numPacks;
+		if (numPacks == 0)
+			applyPacks();
 	}
 
 	public static int getNumPacks() {
@@ -141,17 +150,23 @@ public class PackManager {
 
 	private static void applyPacks() {
 		ResourcePackRepository repo = Minecraft.getMinecraft().getResourcePackRepository();
-		List<ResourcePackRepository.Entry> list = Lists.newArrayList(repo.getRepositoryEntriesAll());
+		List<ResourcePackRepository.Entry> list = ReflectionHelper
+				.getPrivateValue(ResourcePackRepository.class, repo, "repositoryEntries");
 		try {
-			Constructor<ResourcePackRepository.Entry> constructor = ResourcePackRepository.Entry.class
-					.getDeclaredConstructor(IResourcePack.class);
-			constructor.setAccessible(true);
-			for (File pack : USED_PACKS)
-				list.add(constructor.newInstance(new AssetPackResourcePack(pack)));
-		} catch (NoSuchMethodException | SecurityException | InstantiationException
-				| IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
+			Constructor<ResourcePackRepository.Entry> contructor = ResourcePackRepository.Entry.class
+					.getDeclaredConstructor(ResourcePackRepository.class, File.class);
+			Constructor.setAccessible(new AccessibleObject[] { contructor }, true);
+			for (File pack : USED_PACKS) {
+				ResourcePackRepository.Entry entry = contructor.newInstance(repo, pack);
+				list.add(entry);
+				LOADED_PACKS.add(entry.getResourcePack());
+			}
+		} catch (SecurityException | IllegalAccessException | IllegalArgumentException
+				| InvocationTargetException | InstantiationException | NoSuchMethodException e) {
+			GeyserResourcesForge.LOGGER.error("Error encountered when loading Geyser asset packs");
 			e.printStackTrace();
 		}
+		Minecraft.getMinecraft().scheduleResourcesRefresh();
 	}
 
 	private static Byte[] toWrapper(byte[] arr) {
